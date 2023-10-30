@@ -21,7 +21,7 @@ export default function App() {
         
             {
               images.map((image) => (
-               <MyCard key={image} image={image}/>
+               <MyCard key={image.id} image={image}/>
 
               ))
             }
@@ -34,26 +34,28 @@ export default function App() {
 
 const MyCard = ({image}) => {
 
-
-   
   const translateX = useSharedValue(0) // hooks som huske global state
-  //const translateY = useSharedValue(0)
   const rotate = useSharedValue(0)
   
 
   const onGestureEvent = useAnimatedGestureHandler ({ // funktion som returnerer en anden funktion
-    onStart:(_, context) => { // ligeglad med navnet, vi skal have den anden?
+    onStart:(_, context) => { // _, ligeglad med navnet, vi skal have den anden
       context.translateX = translateX.value
-      rotate.value = -translateX.value/25
-      //context.translateY = translateY.value
+     
     },
     onActive:(event, context) => { 
       translateX.value = context.translateX + event.translationX // sidste = det lille du har rykket, den i midten er der hvor du begynder at touche skærmen og den første er den globale værdi
-     // translateY.value = context.translateY + event.translationY
+      rotate.value = -translateX.value/25 // - er for at dreje i rigtig rætning
     },
     onEnd:() => { 
-      translateX.value = withSpring(0)
-     //translateY.value = withSpring(0)
+      if(Math.abs(translateX.value) > 100){
+        translateX.value = withSpring(500) // rykker ud af vinduet til højre
+      } else {
+        translateX.value = withSpring(0)
+        rotate.value = withSpring(0)
+      }
+ 
+  
     }
   })
 
@@ -63,7 +65,7 @@ const MyCard = ({image}) => {
     return {
       transform: [ // transform key returneres fra useAnimatedStyle
         {translateX: translateX.value}, // lokal + global værdi
-        {translateY: translateY.value}, // lytter til ændringer
+        {rotate: rotate.value + 'deg'}, // lytter til ændringer, deg = degress
       ]
     }
   })
