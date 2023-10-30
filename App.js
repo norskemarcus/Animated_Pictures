@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { StyleSheet, Text, View, Image } from 'react-native';
 import { PanGestureHandler, GestureHandlerRootView} from 'react-native-gesture-handler'
-import Animated, { useSharedValue, useAnimatedGestureHandler, useAnimatedStyle, withSpring} from 'react-native-reanimated'
-
+import Animated, { useSharedValue, useAnimatedGestureHandler, useAnimatedStyle, withSpring, runOnJS} from 'react-native-reanimated'
+// runOnJS = få fat på tråden som er javascript-tråden, kontra UI. Baggrundsopgaver skal vi tildele runONJS og ikke UI-tråden, så UI alltid er responsive
 
 export default function App() {
 
@@ -14,6 +14,9 @@ export default function App() {
   ]);
 
 
+  function swipeOff(cardId){
+    setImages(prevImages => prevImages.filter(img => img.id !== cardId)) // får alle billeder udenom det billede som har det cardId man swiper til højre
+  }
 
   return (
     <GestureHandlerRootView style={styles.rootView}>
@@ -21,7 +24,7 @@ export default function App() {
         
             {
               images.map((image) => (
-               <MyCard key={image.id} image={image}/>
+               <MyCard key={image.id} image={image} onSwipeOff={swipeOff}/>
 
               ))
             }
@@ -32,7 +35,7 @@ export default function App() {
   );
 }
 
-const MyCard = ({image}) => {
+const MyCard = ({image, onSwipeOff}) => {
 
   const translateX = useSharedValue(0) // hooks som huske global state
   const rotate = useSharedValue(0)
@@ -50,6 +53,7 @@ const MyCard = ({image}) => {
     onEnd:() => { 
       if(Math.abs(translateX.value) > 100){
         translateX.value = withSpring(500) // rykker ud af vinduet til højre
+        runOnJS(onSwipeOff)(image.id)
       } else {
         translateX.value = withSpring(0)
         rotate.value = withSpring(0)
